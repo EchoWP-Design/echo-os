@@ -78,6 +78,7 @@ Auf GitHub laufen alle Tests automatisch (*Actions → Echo-OS Tests*), Videos u
 
 ## Lizenzen und Marken
 
+Erste stabile Version: Neon-Bootscreen, Kodi 21, 18 Streaming-Apps, automatische Laufwerkserkennung, KI-Agent ECHO
 Echo-OS besteht aus freier Software auf Basis von Raspberry Pi OS (Debian 13). Kodi, der Linux-Kernel und viele weitere Bestandteile stehen unter der GPL und werden unverändert aus den offiziellen Paketquellen übernommen. Jedes Release enthält:
 - die **`.info`-Datei** mit allen enthaltenen Paketen und Versionen,
 - **`LIZENZEN.md`** mit den Lizenzen der wichtigsten Bestandteile und den Bezugsquellen des Quellcodes (liegt auch im Image unter `/usr/share/doc/echoos/` und auf der Boot-Partition als `LIZENZEN.txt`).
