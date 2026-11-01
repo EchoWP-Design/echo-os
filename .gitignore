@@ -1,0 +1,5 @@
+work/
+deploy/
+tests/out/
+core
+__pycache__/

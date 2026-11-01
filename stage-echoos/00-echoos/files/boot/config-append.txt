@@ -1,0 +1,11 @@
+
+[all]
+# --- Echo-OS ---
+disable_overscan=1
+max_framebuffers=2
+
+[pi4]
+# 4K mit 60 Hz auf dem Pi 4
+hdmi_enable_4kp60=1
+
+[all]

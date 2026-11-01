@@ -1,0 +1,63 @@
+# Echo-OS Bootscreen – Plymouth-Skript
+# Grafiken sind für 1280x720 entworfen und werden auf den Bildschirm skaliert.
+
+W = Window.GetWidth();
+H = Window.GetHeight();
+SX = W / 1280;
+SY = H / 720;
+
+Window.SetBackgroundTopColor(0.02, 0.0, 0.08);
+Window.SetBackgroundBottomColor(0.02, 0.0, 0.05);
+
+bg_sprite = Sprite(Image("background.png").Scale(W, H));
+bg_sprite.SetPosition(0, 0, -100);
+
+# Bewegtes Neon-Gitter
+FRAMES = 24;
+for (i = 0; i < FRAMES; i++)
+    grid[i] = Image("grid-" + i + ".png").Scale(W, Math.Int(320 * SY));
+grid_sprite = Sprite(grid[0]);
+grid_sprite.SetPosition(0, Math.Int(400 * SY), -50);
+
+# Logo
+logo_img = Image("logo.png");
+logo_img = logo_img.Scale(Math.Int(logo_img.GetWidth() * SX), Math.Int(logo_img.GetHeight() * SY));
+logo_sprite = Sprite(logo_img);
+logo_sprite.SetPosition(Math.Int((W - logo_img.GetWidth()) / 2), Math.Int(140 * SY), 10);
+
+# Tron-Lichtspur
+streak_img = Image("streak.png");
+streak_img = streak_img.Scale(Math.Int(streak_img.GetWidth() * SX), Math.Int(streak_img.GetHeight() * SY));
+streak_sprite = Sprite(streak_img);
+streak_sprite.SetPosition(-streak_img.GetWidth(), Math.Int(640 * SY), 20);
+
+# Statuszeile (z. B. "Dateisystem wird geprüft")
+msg_sprite = Sprite();
+msg_sprite.SetPosition(0, H - Math.Int(40 * SY), 30);
+
+global.tick = 0;
+
+fun refresh_callback() {
+    global.tick++;
+    # Gitter: alle 2 Ticks ein Bild weiter (~25 fps)
+    grid_sprite.SetImage(grid[Math.Int(global.tick / 2) % FRAMES]);
+    # Logo pulsiert sanft
+    logo_sprite.SetOpacity(0.92 + 0.08 * Math.Sin(global.tick * 0.06));
+    # Lichtspur fährt von links nach rechts und kommt wieder
+    span = W + 2 * streak_img.GetWidth();
+    x = (global.tick * 9 * SX) % span - streak_img.GetWidth();
+    streak_sprite.SetX(Math.Int(x));
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun message_callback(text) {
+    img = Image.Text(text, 0.0, 0.94, 1.0, 1, "DejaVu Sans Mono 14");
+    msg_sprite.SetImage(img);
+    msg_sprite.SetX(Math.Int((W - img.GetWidth()) / 2));
+}
+Plymouth.SetMessageFunction(message_callback);
+
+fun quit_callback() {
+    logo_sprite.SetOpacity(1);
+}
+Plymouth.SetQuitFunction(quit_callback);

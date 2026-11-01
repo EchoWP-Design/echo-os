@@ -1,0 +1,15 @@
+// Echo-OS: alle Updates aus Debian und dem Raspberry-Pi-Archiv automatisch
+// installieren (Sicherheit + Kodi/Firmware). Neustart steuert der KI-Agent.
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Debian,codename=${distro_codename},label=Debian";
+    "origin=Debian,codename=${distro_codename}-updates";
+    "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+    "origin=Raspberry Pi Foundation,codename=${distro_codename}";
+};
+Unattended-Upgrade::Automatic-Reboot "false";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Dpkg::Options {
+    "--force-confdef";
+    "--force-confold";
+};

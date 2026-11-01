@@ -1,0 +1,57 @@
+name: Build Echo-OS
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+  schedule:
+    # Wöchentlich neu bauen, damit das Image die aktuellen Sicherheitsupdates enthält
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # Nativer ARM64-Runner: kein QEMU nötig, deutlich schneller
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Image bauen
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Prüfsumme
+        run: |
+          cd deploy
+          sha256sum *.img.xz > SHA256SUMS
+          ls -la
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: echo-os
+          path: |
+            deploy/*.img.xz
+            deploy/SHA256SUMS
+            deploy/*.info
+            deploy/LIZENZEN.md
+          retention-days: 14
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          append_body: true
+          body: |
+
+            ---
+            **Lizenzen:** Echo-OS besteht aus freier Software auf Basis von Raspberry Pi OS (Debian). Kodi, Linux und viele weitere Bestandteile stehen unter der GPL. Welche Pakete in welcher Version enthalten sind, steht in der `.info`-Datei; wo es den Quellcode gibt, in `LIZENZEN.md`. Das DRM-Modul Widevine ist nicht enthalten und wird beim ersten Start aus der offiziellen Raspberry-Pi-Quelle installiert. „Kodi“ ist eine Marke der XBMC Foundation; Echo-OS ist ein unabhängiges Projekt („Powered by Kodi“).
+          files: |
+            deploy/*.img.xz
+            deploy/SHA256SUMS
+            deploy/*.info
+            deploy/*.sbom.xz
+            deploy/LIZENZEN.md

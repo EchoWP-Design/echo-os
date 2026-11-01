@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECHO Agent</title>
+<style>
+:root{--bg:#07001a;--panel:#120230cc;--cyan:#00f0ff;--mag:#ff28c8;--txt:#e9e4ff;--dim:#9a8fc4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--txt);font:15px/1.5 "DejaVu Sans Mono",ui-monospace,monospace;
+ background:linear-gradient(#07001a 0%,#2a0040 55%,#07001a 55.1%);overflow-x:hidden}
+body:before{content:"";position:fixed;left:-50%;right:-50%;bottom:0;height:45vh;z-index:-1;
+ background-image:linear-gradient(var(--mag) 2px,transparent 2px),linear-gradient(90deg,var(--mag) 2px,transparent 2px);
+ background-size:60px 60px;transform:perspective(300px) rotateX(60deg);transform-origin:bottom;opacity:.35;
+ animation:grid 1.2s linear infinite}
+@keyframes grid{to{background-position:0 60px}}
+header{text-align:center;padding:28px 16px 8px}
+h1{margin:0;font:italic 900 clamp(40px,9vw,84px)/1 "DejaVu Sans",sans-serif;letter-spacing:2px;
+ background:linear-gradient(#fff 0%,#7fe6ff 50%,#3a0070 51%,#ff46d2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+ filter:drop-shadow(0 0 6px var(--cyan)) drop-shadow(0 0 18px #00f0ff88)}
+.sub{color:var(--mag);letter-spacing:.5em;text-shadow:0 0 8px var(--mag);margin-top:6px}
+main{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:1.3fr 1fr}
+@media(max-width:820px){main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--cyan);border-radius:10px;padding:16px;
+ box-shadow:0 0 12px #00f0ff55,inset 0 0 20px #00f0ff18;backdrop-filter:blur(4px)}
+h2{margin:0 0 10px;font-size:14px;letter-spacing:.3em;color:var(--cyan);text-shadow:0 0 6px var(--cyan)}
+#log{height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.msg{padding:8px 12px;border-radius:8px;max-width:90%;white-space:pre-wrap;word-break:break-word}
+.me{align-self:flex-end;background:#ff28c822;border:1px solid var(--mag)}
+.ai{align-self:flex-start;background:#00f0ff14;border:1px solid #00f0ff88}
+.act{font-size:12px;color:var(--dim)}
+form{display:flex;gap:8px;margin-top:10px}
+input{flex:1;min-width:0;background:#05001299;border:1px solid var(--mag);color:var(--txt);border-radius:6px;padding:10px;font:inherit}
+input:focus{outline:none;box-shadow:0 0 10px var(--mag)}
+button{background:transparent;border:1px solid var(--cyan);color:var(--cyan);border-radius:6px;padding:8px 12px;font:inherit;cursor:pointer;
+ text-shadow:0 0 6px var(--cyan)}
+button:hover{background:#00f0ff22;box-shadow:0 0 12px var(--cyan)}
+button.m{border-color:var(--mag);color:var(--mag);text-shadow:0 0 6px var(--mag)}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.apps button{padding:12px 6px;color:#fff;text-shadow:none;border-color:#ffffff44}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0}
+dt{color:var(--dim)}dd{margin:0}
+.warn{color:#ffd23f}.ok{color:#5cffb0}
+#login{position:fixed;inset:0;background:#07001ae6;display:none;place-items:center;z-index:5}
+#login .panel{width:min(360px,92vw);text-align:center}
+.full{grid-column:1/-1}
+</style>
+</head>
+<body>
+<header><h1>ECHO-OS</h1><div class="sub">KI-AGENT</div></header>
+<main>
+  <section class="panel">
+    <h2>▸ CHAT</h2>
+    <div id="log"><div class="msg ai">Hallo, ich bin ECHO. Sag mir, was du sehen willst – z. B. „Spiel die nächste Folge von Dark" oder „Gibt es Updates?"</div></div>
+    <form id="f"><input id="q" placeholder="Nachricht an ECHO …" autocomplete="off"><button>SENDEN</button></form>
+  </section>
+  <section class="panel">
+    <h2>▸ SYSTEM</h2>
+    <dl id="sys"><dt>Status</dt><dd>lädt …</dd></dl>
+    <div class="row" style="margin-top:12px">
+      <button data-a="back_to_kodi">Zu Kodi</button>
+      <button data-a="scan">Bibliothek</button>
+      <button data-a="check_updates">Updates prüfen</button>
+      <button data-a="security">Sicherheit</button>
+      <button class="m" data-a="apply_updates" data-confirm="Alle Updates jetzt installieren?">Updates installieren</button>
+      <button class="m" data-a="reboot" data-confirm="Echo-OS jetzt neu starten?">Neustart</button>
+    </div>
+  </section>
+  <section class="panel full">
+    <h2>▸ STREAMING</h2>
+    <div class="apps" id="apps"></div>
+  </section>
+</main>
+<div id="login"><div class="panel"><h2>▸ ZUGANGSCODE</h2>
+  <p class="act">Der Code wird beim Start auf dem Fernseher angezeigt.</p>
+  <form id="lf"><input id="code" placeholder="Code" autocomplete="off"><button>OK</button></form>
+  <p><button type="button" id="showcode" class="m">Code auf dem Fernseher anzeigen</button></p>
+  <p class="act" id="showmsg"></p></div></div>
+<script>
+let token = "";
+try { token = localStorage.getItem("echoToken") || ""; } catch (e) {}
+// Code per Link übergeben: http://echo-os:8090/#code=abcd1234
+const hashCode = (location.hash.match(/code=([a-z0-9]+)/i) || [])[1];
+if (hashCode) { token = hashCode; try { localStorage.setItem("echoToken", token); } catch (e) {} history.replaceState(null, "", "/"); }
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function api(path, body) {
+  const r = await fetch(path, {method: body ? "POST" : "GET",
+    headers: {"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+    body: body ? JSON.stringify(body) : undefined});
+  if (r.status === 401) { $("#login").style.display = "grid"; throw new Error("auth"); }
+  return r.json();
+}
+function add(text, cls, actions) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerHTML = esc(text) + (actions && actions.length ? `<div class="act">⚙ ${esc(actions.join(", "))}</div>` : "");
+  $("#log").appendChild(d); $("#log").scrollTop = 1e9;
+}
+$("#f").onsubmit = async e => {
+  e.preventDefault();
+  const q = $("#q").value.trim(); if (!q) return;
+  $("#q").value = ""; add(q, "me");
+  try { const r = await api("/api/chat", {message: q}); add(r.reply || r.fehler, "ai", r.actions); }
+  catch (err) { if (err.message !== "auth") add("Fehler: " + err.message, "ai"); }
+};
+$("#showcode").onclick = async () => {
+  const r = await fetch("/api/show-code", {method: "POST"});
+  $("#showmsg").textContent = r.ok ? "Schau auf den Fernseher: unten rechts steht der Code (20 Sekunden)."
+                                   : "Gerade erst angezeigt – bitte 30 Sekunden warten.";
+};
+$("#lf").onsubmit = e => {
+  e.preventDefault(); token = $("#code").value.trim();
+  try { localStorage.setItem("echoToken", token); } catch (e) {}
+  $("#login").style.display = "none"; refresh();
+};
+document.querySelectorAll("[data-a]").forEach(b => b.onclick = async () => {
+  if (b.dataset.confirm && !confirm(b.dataset.confirm)) return;
+  add("▸ " + b.textContent, "me");
+  try { const r = await api("/api/action", {action: b.dataset.a}); add(pretty(r), "ai"); refresh(); }
+  catch (err) {}
+});
+function pretty(r) {
+  if (!r) return "Erledigt.";
+  if (r.fehler) return "⚠ " + r.fehler;
+  if (r.dienst) return "▶ " + r.dienst + " wird gestartet – zurück mit Home oder Zurück lange drücken.";
+  if (Array.isArray(r.warnungen)) return r.warnungen.length ? "⚠ " + r.warnungen.join("\n⚠ ")
+    : "✔ Sicherheit: alles in Ordnung (Firewall aktiv, " + (r.gesperrte_ips || 0) + " gesperrte IPs, offene Ports: " + (r.offene_ports || []).join(", ") + ")";
+  if (r.anzahl !== undefined) return r.anzahl ? `${r.anzahl} Updates verfügbar` + (r.sicherheit && r.sicherheit.length ? `, davon Sicherheit: ${r.sicherheit.join(", ")}` : "") : "✔ System ist aktuell";
+  if (r.info) return "✔ " + r.info;
+  if (r.ok) return "✔ Erledigt.";
+  return JSON.stringify(r);
+}
+async function loadApps() {
+  const list = await (await fetch("/api/services")).json();
+  $("#apps").innerHTML = list.map(s =>
+    `<button style="background:linear-gradient(${esc(s.color)},#000a)" data-s="${esc(s.id)}">${esc(s.name)}</button>`).join("");
+  $("#apps").querySelectorAll("button").forEach(b => b.onclick = async () => {
+    add("▸ " + b.textContent, "me");
+    const r = await api("/api/action", {action: "launch", service: b.dataset.s}); add(pretty(r), "ai");
+  });
+}
+async function refresh() {
+  try {
+    const s = await api("/api/status");
+    const sys = s.system || {}, sec = s.security || {}, upd = s.updates || {};
+    const np = s.now_playing && s.now_playing.spielt;
+    const warn = (sec.warnungen || []);
+    $("#sys").innerHTML = `
+      <dt>System</dt><dd>${esc(sys.system)}</dd>
+      <dt>Temperatur</dt><dd>${esc(sys.temperatur_c)} °C</dd>
+      <dt>IP</dt><dd>${esc((sys.ip || []).join(" "))}</dd>
+      <dt>Kodi</dt><dd>${esc(sys.kodi || "–")}</dd>
+      <dt>Läuft</dt><dd>${np ? esc(np.showtitle ? np.showtitle + " – " + np.title : np.title || np.label) : "–"}</dd>
+      <dt>Laufwerke</dt><dd>${esc((s.drives || []).map(d => d.split("/").pop()).join(", ") || "keine")}</dd>
+      <dt>Updates</dt><dd>${upd.anzahl == null ? "–" : esc(upd.anzahl) + " offen"}${upd.neustart_noetig ? " · Neustart nötig" : ""}</dd>
+      <dt>Sicherheit</dt><dd class="${warn.length ? "warn" : "ok"}">${warn.length ? esc(warn.join("; ")) : "alles in Ordnung"}</dd>
+      <dt>KI</dt><dd>${s.ki ? "Claude verbunden" : "einfache Befehle"}</dd>`;
+  } catch (e) {}
+}
+loadApps(); refresh(); setInterval(refresh, 15000);
+</script>
+</body>
+</html>

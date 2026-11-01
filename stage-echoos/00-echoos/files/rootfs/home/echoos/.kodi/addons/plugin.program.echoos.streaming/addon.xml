@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.program.echoos.streaming" name="Streaming" version="1.0.0" provider-name="Echo-OS">
+    <requires>
+        <import addon="xbmc.python" version="3.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>executable video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="de_DE">Streamingdienste als App-Kacheln</summary>
+        <summary lang="en_GB">Streaming services as app tiles</summary>
+        <description lang="de_DE">Startet Netflix, Prime Video, Disney+, YouTube, Mediatheken und weitere Dienste im Vollbild. Zurück zu Kodi: Home-Taste, F12 oder Zurück/ESC lange drücken.</description>
+        <platform>all</platform>
+        <license>MIT</license>
+        <assets>
+            <icon>icon.png</icon>
+        </assets>
+    </extension>
+</addon>

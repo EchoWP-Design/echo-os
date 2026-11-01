@@ -1,0 +1,14 @@
+[Unit]
+Description=Echo-OS KI-Agent (Steuerung, Updates, Sicherheit)
+After=network-online.target echoos-config.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/echoos/agent/echoos_agent.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

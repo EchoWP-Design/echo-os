@@ -1,0 +1,15 @@
+[Unit]
+Description=Echo-OS: Einstellungen aus echoos.conf übernehmen
+After=local-fs.target NetworkManager.service
+Wants=NetworkManager.service
+Before=kodi.service echoos-agent.service ssh.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/echoos/echoos_config.py
+RemainAfterExit=yes
+# Sicherheitsnetz: nie länger als 3 Minuten auf die Einrichtung warten
+TimeoutStartSec=3min
+
+[Install]
+WantedBy=multi-user.target

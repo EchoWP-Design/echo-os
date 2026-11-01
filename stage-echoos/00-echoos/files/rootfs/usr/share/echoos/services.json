@@ -1,0 +1,20 @@
+[
+  {"id": "netflix", "name": "Netflix", "url": "https://www.netflix.com/browse", "color": "#b20710", "user_agent": "Mozilla/5.0 (X11; CrOS aarch64 15633.69.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36", "drm": true},
+  {"id": "primevideo", "name": "Prime Video", "url": "https://www.primevideo.com", "color": "#1a98ff", "drm": true},
+  {"id": "disneyplus", "name": "Disney+", "url": "https://www.disneyplus.com", "color": "#113ccf", "drm": true},
+  {"id": "youtube", "name": "YouTube", "url": "https://www.youtube.com/tv", "color": "#cc0000", "user_agent": "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36"},
+  {"id": "appletv", "name": "Apple TV+", "url": "https://tv.apple.com", "color": "#333333", "drm": true},
+  {"id": "paramount", "name": "Paramount+", "url": "https://www.paramountplus.com", "color": "#0064ff", "drm": true},
+  {"id": "wow", "name": "WOW", "url": "https://www.wowtv.de", "color": "#6e2bd9", "drm": true},
+  {"id": "rtlplus", "name": "RTL+", "url": "https://plus.rtl.de", "color": "#e3001b", "drm": true},
+  {"id": "joyn", "name": "Joyn", "url": "https://www.joyn.de", "color": "#d5006d", "drm": true},
+  {"id": "magentatv", "name": "MagentaTV", "url": "https://web.magentatv.de", "color": "#e20074", "drm": true},
+  {"id": "dazn", "name": "DAZN", "url": "https://www.dazn.com", "color": "#1b1b1b", "drm": true},
+  {"id": "ard", "name": "ARD Mediathek", "url": "https://www.ardmediathek.de", "color": "#003480"},
+  {"id": "zdf", "name": "ZDF Mediathek", "url": "https://www.zdf.de", "color": "#fa7d19"},
+  {"id": "arte", "name": "ARTE", "url": "https://www.arte.tv/de/", "color": "#f2581a"},
+  {"id": "crunchyroll", "name": "Crunchyroll", "url": "https://www.crunchyroll.com", "color": "#f47521", "drm": true},
+  {"id": "twitch", "name": "Twitch", "url": "https://www.twitch.tv", "color": "#7a42e6"},
+  {"id": "spotify", "name": "Spotify", "url": "https://open.spotify.com", "color": "#1db954", "drm": true},
+  {"id": "plex", "name": "Plex", "url": "https://app.plex.tv", "color": "#e5a00d"}
+]

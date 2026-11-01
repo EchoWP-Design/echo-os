@@ -1,0 +1,29 @@
+# pi-gen Konfiguration für Echo-OS
+# Doku: https://github.com/RPi-Distro/pi-gen#config
+
+IMG_NAME="EchoOS"
+PI_GEN_RELEASE="Echo-OS"
+RELEASE="trixie"
+
+# .img.xz – balenaEtcher kann das direkt flashen
+DEPLOY_COMPRESSION="xz"
+COMPRESSION_LEVEL=6
+
+LOCALE_DEFAULT="de_DE.UTF-8"
+KEYBOARD_KEYMAP="de"
+KEYBOARD_LAYOUT="German"
+TIMEZONE_DEFAULT="Europe/Berlin"
+WPA_COUNTRY="DE"
+
+TARGET_HOSTNAME="echo-os"
+FIRST_USER_NAME="echoos"
+# Wird beim ersten Start durch ein Zufallspasswort ersetzt
+# (oder durch das Passwort aus echoos.conf).
+FIRST_USER_PASS="echoos-build-only"
+DISABLE_FIRST_BOOT_USER_RENAME=1
+
+# SSH ist aus, bis in echoos.conf ein öffentlicher Schlüssel steht.
+ENABLE_SSH=0
+
+# Nur Lite-Basis (stage0-2) + unsere eigene Stage, kein Desktop.
+STAGE_LIST="stage0 stage1 stage2 stage-echoos"

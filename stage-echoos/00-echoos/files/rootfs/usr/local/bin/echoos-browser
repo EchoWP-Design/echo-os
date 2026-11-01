@@ -1,0 +1,39 @@
+#!/bin/bash
+# Startet eine Streaming-App als Vollbild-Browser (Chromium mit Widevine-DRM)
+# im Wayland-Kiosk "cage". Beenden: Home-Taste, F12 oder ESC 1,5 s halten.
+set -u
+SERVICE="${1:-}"
+CONF=/usr/share/echoos/services.json
+
+URL="$(jq -r --arg s "$SERVICE" '.[] | select(.id==$s) | .url' "$CONF")"
+UA="$(jq -r --arg s "$SERVICE" '.[] | select(.id==$s) | .user_agent // empty' "$CONF")"
+if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+    echo "Unbekannter Dienst: $SERVICE" >&2
+    exit 1
+fi
+
+# Profil pro Dienst, damit Logins erhalten bleiben
+PROFILE="$HOME/.config/echoos-chromium/$SERVICE"
+mkdir -p "$PROFILE"
+
+ARGS=(
+    --kiosk
+    --start-fullscreen
+    --noerrdialogs
+    --disable-infobars
+    --no-first-run
+    --disable-session-crashed-bubble
+    --password-store=basic
+    --ozone-platform=wayland
+    --enable-features=VaapiVideoDecoder
+    --autoplay-policy=no-user-gesture-required
+    --check-for-update-interval=31536000
+    --user-data-dir="$PROFILE"
+)
+[ -n "$UA" ] && ARGS+=(--user-agent="$UA")
+
+/usr/bin/python3 /usr/local/lib/echoos/exitkey.py &
+WATCH=$!
+trap 'kill "$WATCH" 2>/dev/null' EXIT
+
+/usr/bin/cage -s -- /usr/bin/chromium "${ARGS[@]}" "$URL"

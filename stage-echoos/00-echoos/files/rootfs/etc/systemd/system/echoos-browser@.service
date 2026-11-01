@@ -1,0 +1,24 @@
+[Unit]
+Description=Echo-OS Streaming-App %i
+After=seatd.service
+# Kodi und der Browser teilen sich Bildschirm und Fernbedienung
+Conflicts=kodi.service
+
+[Service]
+Type=simple
+User=echoos
+Group=echoos
+SupplementaryGroups=video audio input render
+PAMName=echoos
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty1
+UtmpMode=user
+Environment=LIBSEAT_BACKEND=seatd
+ExecStart=/usr/local/bin/echoos-browser %i
+# Nach dem Schließen der App zurück zu Kodi
+ExecStopPost=+/bin/systemctl --no-block start kodi.service

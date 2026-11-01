@@ -1,0 +1,18 @@
+<settings version="2">
+    <!-- JSON-RPC über TCP 9090, nur lokal: der KI-Agent steuert Kodi darüber -->
+    <setting id="services.esenabled">true</setting>
+    <setting id="services.esallinterfaces">false</setting>
+    <setting id="services.webserver">false</setting>
+    <setting id="services.upnp">false</setting>
+    <!-- Addon-Updates automatisch installieren, keine unbekannten Quellen -->
+    <setting id="general.addonupdates">0</setting>
+    <setting id="addons.unknownsources">false</setting>
+    <!-- Bibliothek beim Start aktualisieren -->
+    <setting id="videolibrary.updateonstartup">true</setting>
+    <setting id="musiclibrary.updateonstartup">true</setting>
+    <setting id="videolibrary.showunwatchedplots">0</setting>
+    <!-- Bildwiederholrate an das Video anpassen -->
+    <setting id="videoplayer.adjustrefreshrate">2</setting>
+    <setting id="locale.timezonecountry">Germany</setting>
+    <setting id="locale.timezone">Europe/Berlin</setting>
+</settings>

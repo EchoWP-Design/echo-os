@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Echo-OS
+Description=Echo-OS Neon-Bootscreen im 80er-Stil
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/echo
+ScriptFile=/usr/share/plymouth/themes/echo/echo.script

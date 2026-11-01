@@ -1,0 +1,5 @@
+# Angeschlossene Festplatten/SSDs/USB-Sticks automatisch unter /media/<Name> einhängen.
+# Das Aushängen übernimmt systemd automatisch, wenn das Gerät entfernt wird.
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", \
+  ENV{ID_FS_TYPE}=="ext4|ext3|ext2|vfat|exfat|ntfs|btrfs|xfs", \
+  RUN+="/usr/local/lib/echoos/automount.sh $devnode"

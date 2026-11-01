@@ -1,0 +1,17 @@
+#!/bin/bash
+# Ersatz für echte Systembefehle im Test: protokolliert den Aufruf und liefert Beispieldaten.
+name=$(basename "$0")
+echo "$name $*" >> "${ECHOOS_TEST_LOG:-/dev/null}"
+case "$name" in
+  systemctl)
+    [ "$1" = "list-units" ] && exit 0
+    [ "$1" = "is-active" ] && { echo active; exit 0; } ;;
+  vcgencmd) echo "throttled=0x0" ;;
+  hostname) [ "$1" = "-I" ] && echo "192.168.178.42" ;;
+  apt)  printf 'Listing...\nkodi/stable 2:21.2+rpt2 arm64 [upgradable from: 2:21.2+rpt1]\nopenssl/trixie-security 3.5.4-1~deb13u2 arm64 [upgradable from: 3.5.4-1~deb13u1]\n' ;;
+  ss)   printf 'LISTEN 0 5 0.0.0.0:8090 0.0.0.0:*\nLISTEN 0 5 127.0.0.1:9090 0.0.0.0:*\n' ;;
+  fail2ban-client) printf 'Status for the jail: sshd\n   |- Currently banned:\t0\n' ;;
+  smartctl) echo "SMART overall-health self-assessment test result: PASSED" ;;
+  chpasswd) cat >/dev/null ;;
+esac
+exit 0

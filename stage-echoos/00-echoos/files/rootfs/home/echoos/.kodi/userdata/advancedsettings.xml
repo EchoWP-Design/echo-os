@@ -1,0 +1,10 @@
+<advancedsettings version="1.0">
+    <cache>
+        <memorysize>134217728</memorysize>
+        <readfactor>8</readfactor>
+    </cache>
+    <videolibrary>
+        <!-- Nicht mehr vorhandene Dateien beim Scan aus der Bibliothek entfernen -->
+        <cleanonupdate>false</cleanonupdate>
+    </videolibrary>
+</advancedsettings>

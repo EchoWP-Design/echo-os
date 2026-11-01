@@ -1,0 +1,17 @@
+[Unit]
+Description=Echo-OS: DRM-Modul Widevine aus der offiziellen Raspberry-Pi-Quelle installieren
+After=network-online.target echoos-config.service
+Wants=network-online.target
+ConditionPathExists=!/var/lib/echoos/widevine.done
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /usr/local/lib/echoos/install_widevine.sh
+# Kein Netz oder Paketquelle gerade nicht erreichbar: in 5 Minuten erneut versuchen
+Restart=on-failure
+RestartSec=5min
+TimeoutStartSec=20min
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

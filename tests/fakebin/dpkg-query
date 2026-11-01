@@ -1,0 +1,8 @@
+#!/bin/bash
+# Test-Ersatz: meldet Widevine als installiert, außer ECHOOS_TEST_NO_WIDEVINE ist gesetzt
+echo "dpkg-query $*" >> "${ECHOOS_TEST_LOG:-/dev/null}"
+if [[ "$*" == *libwidevinecdm0* ]]; then
+    [ -n "$ECHOOS_TEST_NO_WIDEVINE" ] && exit 1
+    printf 'install ok installed'
+fi
+exit 0

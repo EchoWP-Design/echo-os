@@ -1,0 +1,4 @@
+# Shell- und Python-Skripte immer mit LF-Zeilenenden (wichtig für Linux/Raspberry Pi)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
