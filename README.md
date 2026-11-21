@@ -69,6 +69,14 @@ Das Streaming-Addon von Echo-OS läuft auch in Kodi auf **Android TV, Fire TV, G
 
 Einstellungen: Gerätetyp (automatisch / Fernseher / Handy), nur installierte Apps zeigen, Neon-Startbild.
 
+## Echo-App für Fire TV und Android TV
+
+Die **Echo-App** (Ordner `app/`, Flutter) bringt den Echo-OS-Look auf den Fernseher: Neon-Intro, alle Streaming-Dienste als Kacheln (startet die installierte App, sonst den App-Store), Kodi-Start und der **ECHO-Chat** – über den Agenten auf dem Echo-OS-Pi oder, wenn der nicht erreichbar ist, direkt über Claude mit eigenem API-Schlüssel. Bedienung komplett mit der Fernbedienung.
+
+- Gebaut wird die APK von GitHub (*Actions → Echo-App (Android)*), Ergebnis unter *Artifacts* bzw. als `EchoApp.apk` am Release.
+- Läuft auf Fire TV mit Fire OS (nicht auf Vega-OS-Geräten, deren Softwareversion mit „1.“ beginnt) und Android TV / Google TV.
+- Fire TV erlaubt keinen eigenen Startbildschirm: die App einfach in *Deine Apps* nach vorne verschieben.
+
 ## Tests
 
 ```bash

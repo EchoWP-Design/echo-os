@@ -1,0 +1,27 @@
+name: echo_app
+description: "Echo-App: Neon-Startseite für Fire TV und Android TV mit Streaming-Kacheln, Kodi-Start und ECHO-Chat."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
+  flutter_secure_storage: ^9.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  # Werden in CI aus den Echo-OS-Quellen erzeugt (tool/make_assets.py)
+  assets:
+    - assets/services.json
+    - assets/tiles/
+    - assets/boot/

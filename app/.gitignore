@@ -1,0 +1,13 @@
+# Von CI erzeugt
+android/
+assets/tiles/
+assets/boot/
+assets/services.json
+tool/out/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+*.jks
+key.properties
