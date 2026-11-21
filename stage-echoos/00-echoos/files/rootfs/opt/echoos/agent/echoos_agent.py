@@ -740,7 +740,8 @@ ACTIONS = {
     "scan": lambda p: tool_scan_library(),
     "reboot": lambda p: tool_reboot(confirmed=True),
     "launch": lambda p: tool_launch_streaming(str(p.get("service", ""))),
-    "control": lambda p: tool_control(str(p.get("action", "")), p.get("value")),
+    # Befehl steht in "command" ("action" ist hier schon "control"); Echo-App auf dem Handy
+    "control": lambda p: tool_control(str(p.get("command") or ""), p.get("value")),
 }
 
 

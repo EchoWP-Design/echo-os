@@ -62,7 +62,9 @@ jobs:
           printf 'storeFile=echo.jks\nstorePassword=%s\nkeyAlias=echo\nkeyPassword=%s\n' "$PW" "$PW" > android/key.properties
       - name: APK bauen (ARM 32 und 64 Bit, für Fire TV und Handys)
         run: |
-          flutter build apk --release --build-number ${{ github.run_number }}
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          flutter build apk --release --build-number ${{ github.run_number }} \
+            --dart-define=APP_VERSION="$VERSION" --dart-define=APP_BUILD=${{ github.run_number }}
           mkdir -p ../dist
           if [ "$SIGNED" = 1 ]; then NAME=EchoApp.apk; else NAME=EchoApp-Test.apk; fi
           cp build/app/outputs/flutter-apk/app-release.apk "../dist/$NAME"

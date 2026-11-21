@@ -76,6 +76,7 @@ Die **Echo-App** (Ordner `app/`, Flutter) bringt den Echo-OS-Look auf den Fernse
 - Gebaut wird die APK von GitHub (*Actions → Echo-App (Android)*), Ergebnis unter *Artifacts* bzw. als `EchoApp.apk` am Release.
 - Läuft auf Fire TV mit Fire OS (nicht auf Vega-OS-Geräten, deren Softwareversion mit „1.“ beginnt) und Android TV / Google TV.
 - Fire TV erlaubt keinen eigenen Startbildschirm: die App einfach in *Deine Apps* nach vorne verschieben.
+- **Auf dem Handy** wird dieselbe App zur **Fernbedienung für den Echo-OS-Pi**: was gerade läuft, Wiedergabe-Tasten und Lautstärke, „Zu Kodi“, Streaming-Dienste auf dem Pi starten, Bibliothek, Updates, Sicherheit, Neustart und ECHO-Chat. Dafür in den Einstellungen Pi-Adresse und Zugangscode eintragen (Handy im Heimnetz-WLAN). Die Ansicht lässt sich in den Einstellungen auch fest wählen.
 
 ## Tests
 

@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:echo_app/apps.dart';
 import 'package:echo_app/chat.dart';
+import 'package:echo_app/main.dart' show useTvLayout;
+import 'package:echo_app/pi_api.dart';
+import 'package:echo_app/screens/remote_screen.dart';
 import 'package:echo_app/screens/chat_screen.dart';
 import 'package:echo_app/screens/home_screen.dart';
 import 'package:echo_app/screens/intro_screen.dart';
@@ -294,6 +297,182 @@ void main() {
       expect(settings.piHost, '192.168.178.193');
       expect(settings.hasPi && settings.hasClaude, isTrue);
       expect(find.text('Gespeichert.'), findsOneWidget);
+    });
+  });
+
+  group('Handy: Fernbedienung für den Pi', () {
+    test('Ansicht: Einstellung schlägt Geräteerkennung', () {
+      expect(useTvLayout('auto', deviceIsTv: true), isTrue);
+      expect(useTvLayout('auto', deviceIsTv: false), isFalse);
+      expect(useTvLayout('tv', deviceIsTv: false), isTrue);
+      expect(useTvLayout('phone', deviceIsTv: true), isFalse);
+    });
+
+    test('Antworten des Agenten als kurzer Satz', () {
+      expect(describeResult({'fehler': 'Es läuft gerade nichts'}), '⚠ Es läuft gerade nichts');
+      expect(describeResult({'ok': true, 'dienst': 'Netflix'}), contains('Netflix'));
+      expect(describeResult({'warnungen': [], 'gesperrte_ips': 2}), contains('alles in Ordnung'));
+      expect(describeResult({'warnungen': ['Firewall aus']}), contains('Firewall aus'));
+      expect(describeResult({'anzahl': 0, 'sicherheit': []}), contains('aktuell'));
+      expect(describeResult({'anzahl': 3, 'sicherheit': ['openssl']}), '3 Updates verfügbar, davon Sicherheit: openssl.');
+      expect(describeResult({'ok': true, 'info': 'Bibliothek wird aktualisiert'}), contains('Bibliothek'));
+      expect(describeResult({'ok': true}), '✔ Erledigt.');
+    });
+
+    test('Was läuft: Serie mit Folge, Film oder nichts', () {
+      expect(nowPlayingText({'now_playing': {'spielt': {'showtitle': 'Dark', 'title': 'Folge 4'}}}), 'Dark – Folge 4');
+      expect(nowPlayingText({'now_playing': {'spielt': {'title': 'Tron'}}}), 'Tron');
+      expect(nowPlayingText({'now_playing': null}), 'Nichts');
+      expect(nowPlayingText({'system': {'streaming_app_aktiv': true}}), 'Streaming-App');
+    });
+
+    test('Aktion mit Zugangscode, falscher Code wird erkannt', () async {
+      late http.Request seen;
+      final api = PiApi('192.168.178.193', 'abcd1234', client: MockClient((req) async {
+        seen = req;
+        return http.Response('{"ok": true}', 200);
+      }));
+      expect(await api.action('control', {'command': 'play_pause'}), {'ok': true});
+      expect(seen.url.toString(), 'http://192.168.178.193:8090/api/action');
+      expect(seen.headers['Authorization'], 'Bearer abcd1234');
+      expect(jsonDecode(seen.body), {'action': 'control', 'command': 'play_pause'});
+      final bad = PiApi('pi', 'x', client: MockClient((req) async => http.Response('{"fehler":"Code falsch"}', 401)));
+      await expectLater(bad.status(), throwsA(isA<PiAuthException>()));
+    });
+
+    /// Simulierter Agent: merkt sich alle Aktionen.
+    (PiApi, List<Map<String, dynamic>>) fakePi() {
+      final actions = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final json = {'content-type': 'application/json; charset=utf-8'};
+        switch (req.url.path) {
+          case '/api/status':
+            return http.Response(
+                jsonEncode({
+                  'system': {'temperatur_c': 48.5, 'streaming_app_aktiv': false},
+                  'now_playing': {
+                    'spielt': {'showtitle': 'Dark', 'title': 'Folge 4'}
+                  },
+                  'updates': {'anzahl': 2, 'neustart_noetig': false},
+                  'security': {'warnungen': []},
+                  'drives': ['/media/FILME-HDD'],
+                }),
+                200,
+                headers: json);
+          case '/api/services':
+            return http.Response(
+                jsonEncode([
+                  {'id': 'netflix', 'name': 'Netflix', 'color': '#b20710'},
+                  {'id': 'zdf', 'name': 'ZDF Mediathek', 'color': '#fa7d19'},
+                ]),
+                200,
+                headers: json);
+          case '/api/action':
+            final body = jsonDecode(req.body) as Map<String, dynamic>;
+            actions.add(body);
+            return http.Response(
+                jsonEncode(body['action'] == 'launch' ? {'ok': true, 'dienst': 'Netflix'} : {'ok': true}), 200,
+                headers: json);
+        }
+        return http.Response('{}', 404);
+      });
+      return (PiApi('pi', 't', client: client), actions);
+    }
+
+    Future<void> pumpRemote(WidgetTester tester, PiApi? api, {EchoSettings? settings}) async {
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 2.6;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        theme: neonTheme(),
+        home: RemoteScreen(
+          settings: settings ?? EchoSettings(piHost: 'pi', piToken: 't'),
+          api: api,
+          onOpenChat: () {},
+          onOpenSettings: () async {},
+          onOpenApps: () {},
+        ),
+      ));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> finish(WidgetTester tester) async {
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox());
+    }
+
+    testWidgets('Zeigt, was läuft, und den Zustand des Pi', (tester) async {
+      final (api, _) = fakePi();
+      await pumpRemote(tester, api);
+      expect(find.text('Dark – Folge 4'), findsOneWidget);
+      expect(find.textContaining('48.5 °C'), findsOneWidget);
+      expect(find.textContaining('Updates: 2 offen'), findsOneWidget);
+      expect(find.textContaining('FILME-HDD'), findsOneWidget);
+      await finish(tester);
+    });
+
+    testWidgets('Pause-Taste und „Zu Kodi“ senden die Aktionen', (tester) async {
+      final (api, actions) = fakePi();
+      await pumpRemote(tester, api);
+      await tester.tap(find.byKey(const ValueKey('play-pause')));
+      await tester.pumpAndSettle();
+      expect(actions.last, {'action': 'control', 'command': 'play_pause', 'value': null});
+      await tester.ensureVisible(find.byKey(const ValueKey('to-kodi')));
+      await tester.tap(find.byKey(const ValueKey('to-kodi')));
+      await tester.pumpAndSettle();
+      expect(actions.last['action'], 'back_to_kodi');
+      await finish(tester);
+    });
+
+    testWidgets('Streaming-Dienst auf dem Pi starten', (tester) async {
+      final (api, actions) = fakePi();
+      await pumpRemote(tester, api);
+      await tester.ensureVisible(find.byKey(const ValueKey('pi-netflix')));
+      await tester.tap(find.byKey(const ValueKey('pi-netflix')));
+      await tester.pumpAndSettle();
+      expect(actions.last, {'action': 'launch', 'service': 'netflix'});
+      expect(find.textContaining('Netflix wird auf dem Fernseher gestartet'), findsOneWidget);
+      await finish(tester);
+    });
+
+    testWidgets('Neustart nur nach Rückfrage', (tester) async {
+      final (api, actions) = fakePi();
+      await pumpRemote(tester, api);
+      await tester.ensureVisible(find.byKey(const ValueKey('reboot')));
+      await tester.tap(find.byKey(const ValueKey('reboot')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pumpAndSettle();
+      expect(actions.where((a) => a['action'] == 'reboot'), isEmpty);
+      await tester.tap(find.byKey(const ValueKey('reboot')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('confirm-yes')));
+      await tester.pumpAndSettle();
+      expect(actions.last['action'], 'reboot');
+      await finish(tester);
+    });
+
+    testWidgets('Ohne Pi-Daten: Hinweis auf die Einstellungen', (tester) async {
+      await pumpRemote(tester, null, settings: EchoSettings());
+      expect(find.byKey(const ValueKey('setup')), findsOneWidget);
+      await finish(tester);
+    });
+
+    testWidgets('Einstellungen: Ansicht wählen und Version anzeigen', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 2.6;
+      addTearDown(tester.view.reset);
+      final settings = EchoSettings();
+      await tester.pumpWidget(MaterialApp(home: SettingsScreen(settings: settings, onSave: (_) async {})));
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('mode-phone')), 200);
+      await tester.tap(find.byKey(const ValueKey('mode-phone')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('version')), findsOneWidget);
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('save')), -200);
+      await tester.tap(find.byKey(const ValueKey('save')));
+      await tester.pumpAndSettle();
+      expect(settings.viewMode, 'phone');
     });
   });
 }

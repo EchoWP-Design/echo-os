@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../chat.dart';
 import '../settings.dart';
+import '../version.dart';
 import '../widgets/neon.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final _token = TextEditingController(text: widget.settings.piToken);
   late final _key = TextEditingController(text: widget.settings.claudeKey);
   String _status = '';
+  late String _mode = widget.settings.viewMode;
 
   @override
   void dispose() {
@@ -36,7 +38,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     widget.settings
       ..piHost = _host.text.trim()
       ..piToken = _token.text.trim()
-      ..claudeKey = _key.text.trim();
+      ..claudeKey = _key.text.trim()
+      ..viewMode = _mode;
   }
 
   Future<void> _save() async {
@@ -115,6 +118,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ]),
         const SizedBox(height: 16),
         Text(_status, key: const ValueKey('status'), style: const TextStyle(color: neonText)),
+        const SizedBox(height: 24),
+        const Text('Ansicht', style: TextStyle(color: neonCyan, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        const Text('Fernseher: Kachel-Startseite. Handy: Fernbedienung für den Pi. Wird beim Speichern übernommen.',
+            style: TextStyle(color: neonDim)),
+        const SizedBox(height: 10),
+        Wrap(spacing: 10, runSpacing: 10, children: [
+          for (final m in const [('auto', 'Automatisch'), ('tv', 'Fernseher'), ('phone', 'Handy')])
+            ChoiceChip(
+              key: ValueKey('mode-${m.$1}'),
+              label: Text(m.$2),
+              selected: _mode == m.$1,
+              onSelected: (_) => setState(() => _mode = m.$1),
+            ),
+        ]),
+        const SizedBox(height: 28),
+        Text('Echo-App $appVersion (Build $appBuild)',
+            key: const ValueKey('version'), style: const TextStyle(color: neonDim, fontSize: 13)),
       ]),
     );
   }

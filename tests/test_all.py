@@ -389,6 +389,13 @@ def main():
     check("Sicherheitsbericht: Firewall aktiv, keine Warnungen", r.get("firewall") and r.get("warnungen") == [], r)
     st, r = http(18091, "/api/action", {"action": "launch", "service": "netflix"}, token="testcode")
     check("Web-Button startet Netflix", r.get("dienst") == "Netflix", r)
+    before = len(kodi_calls(kodi_log))
+    st, r = http(18091, "/api/action", {"action": "control", "command": "play_pause"}, token="testcode")
+    pp = [c for c in kodi_calls(kodi_log)[before:] if c["method"] == "Player.PlayPause"]
+    check("Echo-App (Handy): Pause-Taste steuert Kodi über den Agenten", r.get("ok") and len(pp) == 1, r)
+    st, r = http(18091, "/api/action", {"action": "control", "command": "volume", "value": 35}, token="testcode")
+    vol = [c for c in kodi_calls(kodi_log) if c["method"] == "Application.SetVolume"]
+    check("Echo-App (Handy): Lautstärke wird gesetzt", r.get("ok") and vol and vol[-1]["params"]["volume"] == 35, r)
 
     # Schutz gegen Raten des Codes
     for _ in range(11):
