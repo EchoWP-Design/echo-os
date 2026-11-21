@@ -145,6 +145,13 @@ def patch_images():
         d = os.path.join(res, f"mipmap-{folder}")
         os.makedirs(d, exist_ok=True)
         rund.resize((size, size), Image.LANCZOS).save(os.path.join(d, "ic_launcher.png"))
+    # Fernseher: quadratisches Symbol. "television" hat Vorrang vor anydpi-v26, so dass Fire TV
+    # (Fire OS 7 vergrößert Adaptive Icons zu stark) und Android TV dieses Bild nehmen.
+    tv = Image.open(os.path.join(brand, "echo-app_tv-symbol_1024.png")).convert("RGBA")
+    for folder, size in {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}.items():
+        d = os.path.join(res, f"mipmap-television-{folder}")
+        os.makedirs(d, exist_ok=True)
+        tv.resize((size, size), Image.LANCZOS).save(os.path.join(d, "ic_launcher.png"))
     # Adaptive Icon (Android 8+): Vordergrund, schwarzer Hintergrund, Monochrom (Android 13+)
     nodpi = os.path.join(res, "drawable-nodpi")
     os.makedirs(nodpi, exist_ok=True)

@@ -43,6 +43,35 @@ def render(s, size=1024):
     return Image.open(BytesIO(cairosvg.svg2png(bytestring=s.encode(), output_width=size, output_height=size))).convert("RGBA")
 
 
+def make_banner(W, H):
+    """Elefant + Wortmarke „Echo“ mit Block „App“ (Inter Display Black), zentriert auf Schwarz."""
+    S = W / 320
+    banner = Image.new("RGBA", (W, H), K)
+    icon = render(svg(motiv(Y, K, 2.55)), 1024)
+    icon = icon.crop(icon.getbbox())
+    ih = int(180 * S * 0.56)
+    icon = icon.resize((int(icon.width * ih / icon.height), ih), Image.LANCZOS)
+    d = ImageDraw.Draw(banner)
+    font = ImageFont.truetype(FONT, int(40 * S))
+    sfont = ImageFont.truetype(FONT, int(20 * S))
+    bb = d.textbbox((0, 0), "Echo", font=font)
+    sb = d.textbbox((0, 0), "App", font=sfont)
+    pad, gap1, gap2 = int(5 * S), int(10 * S), int(5 * S)
+    block_w = (sb[2] - sb[0]) + 2 * pad
+    total = icon.width + gap1 + (bb[2] - bb[0]) + gap2 + block_w
+    x0 = (W - total) // 2
+    banner.alpha_composite(icon, (x0, (H - ih) // 2))
+    x = x0 + icon.width + gap1
+    y = (H - (bb[3] - bb[1])) // 2 - bb[1]
+    d.text((x, y), "Echo", font=font, fill=Y)
+    x2 = x + (bb[2] - bb[0]) + gap2
+    bh = (sb[3] - sb[1]) + 2 * pad
+    by = y + bb[3] - bh
+    d.rounded_rectangle((x2, by, x2 + block_w, by + bh), radius=int(6 * S), fill=Y)
+    d.text((x2 + pad - sb[0], by + pad - sb[1]), "App", font=sfont, fill=K)
+    return banner
+
+
 files = {
     "echo-app_symbol_rund": svg(f'<circle cx="512" cy="512" r="512" fill="{K}"/>' + motiv(Y, K, 2.55)),
     "echo-app_android-vordergrund": svg(motiv(Y, K, 1.70)),
@@ -54,33 +83,15 @@ for name, s in files.items():
     open(f"{name}.svg", "w").write(s)
     render(s).save(f"{name}_1024.png")
 render(svg(f'<rect width="1024" height="1024" fill="{K}"/>' + motiv(Y, K, 2.3)), 512).save("echo-app_store_512.png")
+# Fernseher (Fire TV/Android TV): quadratisches Symbol mit dem Banner-Motiv. Fire TV zeigt für
+# Apps außerhalb des Amazon Appstore kein Banner, nur das Symbol (Fire OS 7 vergrößert zudem
+# Adaptive Icons zu stark) – daher steckt das Banner im quadratischen TV-Symbol.
+tv_banner = make_banner(1024, 576)
+tv_img = Image.new("RGBA", (1024, 1024), K)
+tv_img.alpha_composite(tv_banner, (0, (1024 - 576) // 2))
+tv_img.convert("RGB").save("echo-app_tv-symbol_1024.png")
 
-# Fire-TV-/Android-TV-Banner 320x180 (vierfach gerechnet für saubere Kanten)
-S = 4
-W, H = 320 * S, 180 * S
-banner = Image.new("RGBA", (W, H), K)
-icon = render(svg(motiv(Y, K, 2.55)), 1024)
-icon = icon.crop(icon.getbbox())
-ih = int(H * 0.56)
-icon = icon.resize((int(icon.width * ih / icon.height), ih), Image.LANCZOS)
-d = ImageDraw.Draw(banner)
-font = ImageFont.truetype(FONT, 40 * S)
-sfont = ImageFont.truetype(FONT, 20 * S)
-bb = d.textbbox((0, 0), "Echo", font=font)
-sb = d.textbbox((0, 0), "App", font=sfont)
-pad, gap1, gap2 = 5 * S, 10 * S, 5 * S
-block_w = (sb[2] - sb[0]) + 2 * pad
-total = icon.width + gap1 + (bb[2] - bb[0]) + gap2 + block_w
-x0 = (W - total) // 2
-banner.alpha_composite(icon, (x0, (H - ih) // 2))
-x = x0 + icon.width + gap1
-y = (H - (bb[3] - bb[1])) // 2 - bb[1]
-d.text((x, y), "Echo", font=font, fill=Y)
-x2 = x + (bb[2] - bb[0]) + gap2
-bh = (sb[3] - sb[1]) + 2 * pad
-by = y + bb[3] - bh
-d.rounded_rectangle((x2, by, x2 + block_w, by + bh), radius=6 * S, fill=Y)
-d.text((x2 + pad - sb[0], by + pad - sb[1]), "App", font=sfont, fill=K)
+banner = make_banner(320 * 4, 180 * 4)
 banner.resize((320, 180), Image.LANCZOS).convert("RGB").save("echo-app_tv-banner_320x180.png")
 
 # Vorschau: runde/abgerundete Maske, 48 px, Banner
