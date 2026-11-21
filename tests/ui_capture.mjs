@@ -17,7 +17,8 @@ let ws, id = 0;
 const pending = new Map();
 let frameNo = 0;
 async function connect() {
-  for (let i = 0; i < 50; i++) {
+  // Chrome braucht auf GitHub-Rechnern manchmal deutlich länger zum Starten: bis zu 60 s warten
+  for (let i = 0; i < 300; i++) {
     try {
       const list = await (await fetch("http://127.0.0.1:9333/json/list")).json();
       const page = list.find(t => t.type === "page");
@@ -25,6 +26,7 @@ async function connect() {
     } catch { }
     await sleep(200);
   }
+  if (!ws) throw new Error("Chrome hat nach 60 s keine DevTools-Verbindung angeboten");
   await new Promise(r => ws.addEventListener("open", r));
   ws.addEventListener("message", ev => {
     const m = JSON.parse(ev.data);
