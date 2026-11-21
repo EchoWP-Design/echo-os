@@ -151,15 +151,21 @@ def patch_images():
 SIGNING = """
     signingConfigs {
         create("echo") {
-            val props = java.util.Properties()
-            val f = rootProject.file("key.properties")
-            if (f.exists()) f.inputStream().use { props.load(it) }
-            storeFile = file(props.getProperty("storeFile") ?: "echo.jks")
-            storePassword = props.getProperty("storePassword")
-            keyAlias = props.getProperty("keyAlias")
-            keyPassword = props.getProperty("keyPassword")
+            storeFile = file(echoKeyProps.getProperty("storeFile") ?: "echo.jks")
+            storePassword = echoKeyProps.getProperty("storePassword")
+            keyAlias = echoKeyProps.getProperty("keyAlias")
+            keyPassword = echoKeyProps.getProperty("keyPassword")
         }
     }
+"""
+
+# Außerhalb von android { }: dort meint "java" etwas anderes (AGP 9)
+KEY_PROPS = """
+val echoKeyProps = Properties()
+val echoKeyFile: File = rootProject.file("key.properties")
+if (echoKeyFile.exists()) {
+    echoKeyFile.inputStream().use { stream -> echoKeyProps.load(stream) }
+}
 """
 
 
@@ -168,6 +174,12 @@ def patch_gradle():
     if not os.path.exists(path):
         fail("build.gradle.kts nicht gefunden (ältere Flutter-Version?)")
     s = open(path, encoding="utf-8").read()
+    if "import java.util.Properties" not in s:
+        s = "import java.util.Properties\n\n" + s
+    if "val echoKeyProps" not in s:
+        if "\nandroid {" not in s:
+            fail("android-Block in build.gradle.kts nicht gefunden")
+        s = s.replace("\nandroid {", KEY_PROPS + "\nandroid {", 1)
     if 'create("echo")' not in s:
         s = s.replace("    buildTypes {", SIGNING + "\n    buildTypes {", 1)
     if 'signingConfigs.getByName("debug")' not in s and 'signingConfigs.getByName("echo")' not in s:
