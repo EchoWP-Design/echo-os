@@ -6,7 +6,7 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 
-SERVICES = "/usr/share/echoos/services.json"
+SERVICES = os.environ.get("ECHOOS_SERVICES", "/usr/share/echoos/services.json")
 OUT = os.environ.get("ECHOOS_TILE_DIR", "/usr/share/echoos/tiles")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 W, H = 512, 512

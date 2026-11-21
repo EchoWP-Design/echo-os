@@ -58,12 +58,24 @@ Passwörter und API-Schlüssel werden beim Start übernommen und aus `echoos.con
 - Der Agent prüft alle 6 Stunden auf Updates und stündlich die Sicherheit: offene Ports, Firewall, SSH-Fehlversuche, gesperrte IPs, Festplatten-Gesundheit (SMART), Temperatur, Unterspannung, Speicherplatz. Probleme erscheinen als Hinweis auf dem Fernseher.
 - Braucht ein Update einen Neustart, startet Echo-OS nachts um 4 Uhr neu – nur wenn gerade nichts läuft (abschaltbar mit `auto_reboot = no`).
 
+## Echo Streaming für Android (Kodi-Addon)
+
+Das Streaming-Addon von Echo-OS läuft auch in Kodi auf **Android TV, Fire TV, Google TV und Android-Handys**. Dort öffnen die Kacheln die installierte App des Dienstes (Netflix, Prime Video …) – mit voller Qualität und eigenem DRM der App. Fehlt eine App, öffnet die Kachel den Play Store bzw. Amazon Appstore.
+
+1. `plugin.program.echoos.streaming-<version>.zip` vom aktuellen Release herunterladen (oder selbst bauen: `python3 tools/build_kodi_addon.py`).
+2. Kodi → *Einstellungen → System → Add-ons* → **Unbekannte Quellen** einschalten.
+3. Kodi → *Add-ons → Paket-Symbol oben links → Aus ZIP-Datei installieren* → ZIP auswählen.
+4. Unter *Add-ons → Programm-Add-ons* erscheint **Echo Streaming**. Beim nächsten Kodi-Start zeigt sich der Neon-Startbildschirm (in den Addon-Einstellungen abschaltbar).
+
+Einstellungen: Gerätetyp (automatisch / Fernseher / Handy), nur installierte Apps zeigen, Neon-Startbild.
+
 ## Tests
 
 ```bash
-python3 tests/test_all.py      # 31 Funktionstests (ohne Pi lauffähig)
+python3 tests/test_all.py      # 63 Funktionstests (ohne Pi lauffähig)
 tests/run_ui_demo.sh           # Web-Oberfläche in Chrome aufnehmen
 bash tests/ci_visual_test.sh   # echtes Plymouth + Kodi + Laufwerk (Linux, sudo)
+bash tests/addon_visual_test.sh # Streaming-Addon in echtem Kodi (Kacheln, Einstellungen, Startbild)
 # VM-Test eines gebauten Images (Raspberry Pi 3B in QEMU, Bildschirmaufnahme):
 python3 tests/vm/qemu_boot.py deploy/EchoOS.img tests/out/vm 480
 ```
@@ -78,7 +90,6 @@ Auf GitHub laufen alle Tests automatisch (*Actions → Echo-OS Tests*), Videos u
 
 ## Lizenzen und Marken
 
-Erste stabile Version: Neon-Bootscreen, Kodi 21, 18 Streaming-Apps, automatische Laufwerkserkennung, KI-Agent ECHO
 Echo-OS besteht aus freier Software auf Basis von Raspberry Pi OS (Debian 13). Kodi, der Linux-Kernel und viele weitere Bestandteile stehen unter der GPL und werden unverändert aus den offiziellen Paketquellen übernommen. Jedes Release enthält:
 - die **`.info`-Datei** mit allen enthaltenen Paketen und Versionen,
 - **`LIZENZEN.md`** mit den Lizenzen der wichtigsten Bestandteile und den Bezugsquellen des Quellcodes (liegt auch im Image unter `/usr/share/doc/echoos/` und auf der Boot-Partition als `LIZENZEN.txt`).
@@ -86,6 +97,9 @@ Echo-OS besteht aus freier Software auf Basis von Raspberry Pi OS (Debian 13). K
 Das proprietäre DRM-Modul **Widevine** verteilt Echo-OS nicht selbst. „Kodi“ ist eine Marke der XBMC Foundation; Echo-OS ist ein unabhängiges Projekt („Powered by Kodi“) und wird von der Foundation weder unterstützt noch empfohlen.
 
 ## Projektstruktur
+
+Ausführliche Projektakte mit Aufbau, Entscheidungen und Erfahrungen: [PROJEKT.md](PROJEKT.md)
+
 
 ```
 config                       pi-gen-Konfiguration (Name, Sprache, Stages)

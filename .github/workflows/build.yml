@@ -24,10 +24,15 @@ jobs:
           chmod +x build.sh
           ./build.sh
 
+      - name: Kodi-Addon für Android, Fire TV und Pi bauen
+        run: |
+          sudo apt-get install -y -q python3-pil fonts-dejavu-core
+          python3 tools/build_kodi_addon.py deploy
+
       - name: Prüfsumme
         run: |
           cd deploy
-          sha256sum *.img.xz > SHA256SUMS
+          sha256sum *.img.xz plugin.program.echoos.streaming-*.zip > SHA256SUMS
           ls -la
 
       - uses: actions/upload-artifact@v5
@@ -38,6 +43,7 @@ jobs:
             deploy/SHA256SUMS
             deploy/*.info
             deploy/LIZENZEN.md
+            deploy/plugin.program.echoos.streaming-*.zip
           retention-days: 14
 
       - name: Release
@@ -49,9 +55,12 @@ jobs:
 
             ---
             **Lizenzen:** Echo-OS besteht aus freier Software auf Basis von Raspberry Pi OS (Debian). Kodi, Linux und viele weitere Bestandteile stehen unter der GPL. Welche Pakete in welcher Version enthalten sind, steht in der `.info`-Datei; wo es den Quellcode gibt, in `LIZENZEN.md`. Das DRM-Modul Widevine ist nicht enthalten und wird beim ersten Start aus der offiziellen Raspberry-Pi-Quelle installiert. „Kodi“ ist eine Marke der XBMC Foundation; Echo-OS ist ein unabhängiges Projekt („Powered by Kodi“).
+
+            **Echo Streaming für Kodi auf Android TV, Fire TV und Handy:** `plugin.program.echoos.streaming-*.zip` herunterladen und in Kodi über *Add-ons → Aus ZIP-Datei installieren* einspielen. Die Kacheln öffnen die installierten Streaming-Apps.
           files: |
             deploy/*.img.xz
             deploy/SHA256SUMS
             deploy/*.info
             deploy/*.sbom.xz
             deploy/LIZENZEN.md
+            deploy/plugin.program.echoos.streaming-*.zip

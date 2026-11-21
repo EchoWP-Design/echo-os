@@ -119,12 +119,11 @@ def main():
 
     # ------------------------------------------------------------ Kodi-Addon
     section("Kodi-Addon 'Streaming'")
-    addon = os.path.join(FS, "home/echoos/.kodi/addons/plugin.program.echoos.streaming/default.py")
+    addon_dir = os.path.join(FS, "home/echoos/.kodi/addons/plugin.program.echoos.streaming")
     stub_log = os.path.join(work, "xbmc.jsonl")
-    aenv = {**env, "PYTHONPATH": os.path.join(HERE, "stub_xbmc"), "XBMC_STUB_LOG": stub_log}
-    src = open(addon).read().replace('"/usr/share/echoos/services.json"', repr(SERVICES))
-    tmp_addon = os.path.join(work, "default.py")
-    open(tmp_addon, "w").write(src)
+    aenv = {**env, "PYTHONPATH": os.path.join(HERE, "stub_xbmc"), "XBMC_STUB_LOG": stub_log,
+            "ECHOOS_SERVICES": SERVICES, "PYTHONDONTWRITEBYTECODE": "1"}
+    tmp_addon = os.path.join(addon_dir, "default.py")
     def kodi_run(query):
         # Kodi ruft Plugins mit argv = [Plugin-URL, Handle, Query] auf
         code = ("import sys, runpy; sys.argv = ['plugin://plugin.program.echoos.streaming/', '1', %r];"
@@ -153,6 +152,113 @@ def main():
     check("Ohne Widevine: DRM-Dienst startet nicht, Hinweis erscheint", not started and hint)
     del aenv["ECHOOS_TEST_NO_WIDEVINE"]
     check("Unbekannte Dienste werden abgelehnt", "evil" not in open(syslog).read())
+
+    # ------------------------------------------------------------ Addon auf Android
+    section("Kodi-Addon auf Android (TV, Fire TV, Handy)")
+    import sys as _sys
+    _sys.dont_write_bytecode = True   # keine __pycache__-Ordner im Addon hinterlassen
+    _sys.path.insert(0, os.path.join(addon_dir, "resources", "lib"))
+    os.environ["ECHOOS_SERVICES"] = SERVICES
+    import echostream as es
+    svc = {s["id"]: s for s in services}
+    check("Alle 18 Dienste haben Android-Paketnamen für TV und Handy",
+          all(s.get("android", {}).get("tv") and s.get("android", {}).get("mobile") for s in services))
+    tv_apps = {"com.google.android.youtube.tv": "YouTube", "com.netflix.ninja": "Netflix",
+               "com.android.vending": "Google Play Store"}
+    phone_apps = {"com.netflix.mediaclient": "Netflix", "com.android.vending": "Play Store",
+                  "com.google.android.apps.youtube.music": "YouTube Music"}
+    fire_apps = {"com.amazon.firetv.youtube": "YouTube", "com.amazon.venezia": "Appstore"}
+    check("Android-TV-Gerät wird erkannt", es.is_tv(tv_apps) and not es.is_tv(phone_apps))
+    check("Fire-TV-Gerät wird erkannt", es.is_tv(fire_apps))
+    check("Einstellung 'Handy' übersteuert die Erkennung", not es.is_tv(tv_apps, "mobile"))
+    check("Fernseher: Netflix startet die TV-App (com.netflix.ninja)",
+          es.find_package(svc["netflix"], tv_apps, True) == "com.netflix.ninja")
+    check("Handy: Netflix startet die Handy-App", es.find_package(svc["netflix"], phone_apps, False) == "com.netflix.mediaclient")
+    check("App mit unbekanntem Paketnamen wird über ihren Namen gefunden",
+          es.find_package(svc["zdf"], {"de.zdf.neu": "ZDF"}, True) == "de.zdf.neu")
+    check("'YouTube Music' wird nicht für YouTube gehalten", es.find_package(svc["youtube"], phone_apps, False) is None)
+    cmd = es.store_command(svc["disneyplus"], tv_apps, True)
+    check("Fehlt die App, öffnet sich der Play Store", cmd ==
+          "StartAndroidActivity(com.android.vending,android.intent.action.VIEW,,market://details?id=com.disney.disneyplus)", cmd)
+    check("Play Store zeigt auf dem Fernseher die TV-Version", "id=de.swr.avp.ard.tv" in es.store_command(svc["ard"], tv_apps, True))
+    check("Play Store zeigt auf dem Handy die Handy-Version", "id=de.swr.avp.ard)" in es.store_command(svc["ard"], phone_apps, False))
+    check("Fire TV: Amazon Appstore statt Play Store",
+          "amzn://apps/android?p=de.rtli.tvnow" in es.store_command(svc["rtlplus"], fire_apps, True))
+    check("Ohne App-Store kein Startbefehl", es.store_command(svc["wow"], {"x.y": "Z"}, True) is None)
+
+    android_env = {"XBMC_STUB_PLATFORM": "android", "XBMC_STUB_APPS": json.dumps(list(tv_apps.items()))}
+    aenv.update(android_env)
+    open(stub_log, "w").close()
+    kodi_run("")
+    calls = [json.loads(l) for l in open(stub_log) if l.strip()]
+    labels = [c["label"] for c in calls if c["call"] == "addDirectoryItem"]
+    check("Liste auf Android: installierte Apps normal, fehlende mit Hinweis 'installieren'",
+          "Netflix" in labels and "YouTube" in labels and "Disney+ · installieren" in labels and len(labels) == 18, labels[:5])
+    open(stub_log, "w").close()
+    kodi_run("?launch=netflix")
+    builtins = [c["command"] for c in (json.loads(l) for l in open(stub_log) if l.strip()) if c["call"] == "builtin"]
+    check("Klick auf Netflix startet auf Android die Netflix-App", "StartAndroidActivity(com.netflix.ninja)" in builtins, builtins)
+    before = open(syslog).read()
+    open(stub_log, "w").close()
+    kodi_run("?launch=disneyplus")
+    builtins = [c["command"] for c in (json.loads(l) for l in open(stub_log) if l.strip()) if c["call"] == "builtin"]
+    check("Klick auf fehlende App öffnet den Play Store", any("market://details?id=com.disney.disneyplus" in b for b in builtins), builtins)
+    check("Auf Android wird nie der Pi-Browser gestartet", "echoos-browser" not in open(syslog).read()[len(before):])
+    aenv["XBMC_STUB_SETTINGS"] = json.dumps({"onlyinstalled": True})
+    open(stub_log, "w").close()
+    kodi_run("")
+    labels = [json.loads(l)["label"] for l in open(stub_log) if l.strip() and json.loads(l)["call"] == "addDirectoryItem"]
+    check("Einstellung 'Nur installierte Apps' blendet fehlende aus", sorted(labels) == ["Netflix", "YouTube"], labels)
+    for k in list(android_env) + ["XBMC_STUB_SETTINGS"]:
+        aenv.pop(k, None)
+
+    section("Neon-Startbild für Kodi (Addon-Dienst)")
+    sp_addon = os.path.join(work, "addon_copy")
+    shutil.copytree(addon_dir, sp_addon)
+    os.makedirs(os.path.join(sp_addon, "resources", "media"))
+    open(os.path.join(sp_addon, "resources", "media", "splash.jpg"), "wb").write(b"ECHO-NEON-1")
+    home = os.path.join(work, "kodihome")
+    senv = {**aenv, "XBMC_STUB_ADDON_PATH": sp_addon, "XBMC_STUB_HOME": home,
+            "XBMC_STUB_PROFILE": os.path.join(work, "profile")}
+    target = os.path.join(home, "media", "splash.jpg")
+    def run_service(settings=None):
+        e = dict(senv)
+        if settings is not None:
+            e["XBMC_STUB_SETTINGS"] = json.dumps(settings)
+        subprocess.run([PY, os.path.join(sp_addon, "service.py")], env=e, check=False)
+    run_service()
+    check("Startbild wird angelegt, wenn keins da ist", open(target, "rb").read() == b"ECHO-NEON-1")
+    open(os.path.join(sp_addon, "resources", "media", "splash.jpg"), "wb").write(b"ECHO-NEON-2")
+    run_service()
+    check("Eigenes (vom Addon gesetztes) Startbild wird bei Updates erneuert", open(target, "rb").read() == b"ECHO-NEON-2")
+    run_service({"splash": False})
+    check("Abschalten entfernt das Addon-Startbild", not os.path.exists(target))
+    open(target, "wb").write(b"JANS-EIGENES-BILD")
+    run_service()
+    run_service({"splash": False})
+    check("Ein eigenes Startbild des Nutzers wird nie angefasst", open(target, "rb").read() == b"JANS-EIGENES-BILD")
+
+    section("Kodi-Addon als ZIP")
+    zdir = os.path.join(work, "zip")
+    r = subprocess.run([PY, os.path.join(ROOT, "tools/build_kodi_addon.py"), zdir], capture_output=True, text=True)
+    zpath = r.stdout.strip()
+    import zipfile as _zf
+    names = _zf.ZipFile(zpath).namelist() if zpath and os.path.exists(zpath) else []
+    pre = "plugin.program.echoos.streaming/"
+    need = [pre + n for n in ("addon.xml", "default.py", "service.py", "icon.png", "fanart.jpg", "LIZENZEN.md",
+                              "resources/services.json", "resources/settings.xml", "resources/media/splash.jpg",
+                              "resources/lib/echostream.py",
+                              "resources/language/resource.language.de_de/strings.po")]
+    check("ZIP wird gebaut und enthält Addon, Einstellungen, Startbild, Lizenzen", all(n in names for n in need),
+          [n for n in need if n not in names] or r.stderr[-300:])
+    check("ZIP enthält alle 18 Kacheln", sum(1 for n in names if n.startswith(pre + "resources/tiles/")) == 18)
+    check("Dateiname trägt die Addon-Version", zpath.endswith("plugin.program.echoos.streaming-1.1.0.zip"), zpath)
+    try:
+        ET.fromstring(_zf.ZipFile(zpath).read(pre + "addon.xml"))
+        ET.fromstring(_zf.ZipFile(zpath).read(pre + "resources/settings.xml"))
+        check("addon.xml und settings.xml sind gültiges XML", True)
+    except Exception as exc:  # noqa: BLE001
+        check("addon.xml und settings.xml sind gültiges XML", False, exc)
 
     # ------------------------------------------------------------ Konfiguration
     section("Erststart-Konfiguration (echoos.conf)")

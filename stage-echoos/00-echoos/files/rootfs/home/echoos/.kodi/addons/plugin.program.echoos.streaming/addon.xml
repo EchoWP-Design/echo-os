@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.program.echoos.streaming" name="Streaming" version="1.0.0" provider-name="Echo-OS">
+<addon id="plugin.program.echoos.streaming" name="Echo Streaming" version="1.1.0" provider-name="Echo-OS">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>executable video</provides>
     </extension>
+    <extension point="xbmc.service" library="service.py" start="login"/>
     <extension point="xbmc.addon.metadata">
-        <summary lang="de_DE">Streamingdienste als App-Kacheln</summary>
-        <summary lang="en_GB">Streaming services as app tiles</summary>
-        <description lang="de_DE">Startet Netflix, Prime Video, Disney+, YouTube, Mediatheken und weitere Dienste im Vollbild. Zurück zu Kodi: Home-Taste, F12 oder Zurück/ESC lange drücken.</description>
+        <summary lang="de_DE">Streamingdienste als Kacheln – von Echo-OS</summary>
+        <summary lang="en_GB">Streaming services as tiles – from Echo-OS</summary>
+        <description lang="de_DE">18 Streamingdienste und Mediatheken als Kacheln. Unter Android (Android TV, Google TV, Fire TV, Handy) startet eine Kachel die installierte App des Dienstes oder öffnet sie im App-Store. Auf Echo-OS (Raspberry Pi) startet der Dienst im Vollbild-Browser. Dazu auf Wunsch das Neon-Startbild von Echo-OS.</description>
+        <description lang="en_GB">18 streaming services as tiles. On Android (Android TV, Google TV, Fire TV, phones) a tile opens the installed app of the service or its store page. On Echo-OS (Raspberry Pi) the service opens in a full-screen browser. Optional neon splash screen from Echo-OS.</description>
+        <disclaimer lang="de_DE">Unabhängiges Projekt. Es enthält keine Inhalte der Dienste und keine Logos; für die Dienste ist ein eigenes Abo nötig.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
+        <source>https://github.com/EchoWP-Design/EchoOs</source>
+        <news>1.1.0: Unterstützung für Kodi auf Android (startet die echten Apps), Neon-Startbild, Einstellungen.</news>
         <assets>
             <icon>icon.png</icon>
+            <fanart>fanart.jpg</fanart>
         </assets>
     </extension>
 </addon>

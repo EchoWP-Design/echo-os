@@ -1,0 +1,48 @@
+# Kodi Media Center language file
+# Addon Name: Echo Streaming
+# Addon id: plugin.program.echoos.streaming
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de_DE\n"
+
+msgctxt "#32000"
+msgid "General"
+msgstr "Allgemein"
+
+msgctxt "#32001"
+msgid "Device type"
+msgstr "Gerätetyp"
+
+msgctxt "#32002"
+msgid "Decides whether the TV or the phone version of an app is searched for and offered in the app store."
+msgstr "Bestimmt, ob die Fernseher- oder die Handy-Version einer App gesucht und im App-Store angeboten wird."
+
+msgctxt "#32003"
+msgid "Detect automatically"
+msgstr "Automatisch erkennen"
+
+msgctxt "#32004"
+msgid "TV (Android TV, Google TV, Fire TV)"
+msgstr "Fernseher (Android TV, Google TV, Fire TV)"
+
+msgctxt "#32005"
+msgid "Phone or tablet"
+msgstr "Handy oder Tablet"
+
+msgctxt "#32006"
+msgid "Show installed apps only"
+msgstr "Nur installierte Apps zeigen"
+
+msgctxt "#32007"
+msgid "Hides services whose app is not installed on this device (Android only)."
+msgstr "Blendet Dienste aus, deren App auf diesem Gerät nicht installiert ist (nur Android)."
+
+msgctxt "#32008"
+msgid "Use the Echo-OS neon splash screen"
+msgstr "Neon-Startbild von Echo-OS verwenden"
+
+msgctxt "#32009"
+msgid "Shows the Echo-OS splash screen when Kodi starts. Your own splash image is never overwritten."
+msgstr "Zeigt beim Start von Kodi das Echo-OS-Startbild. Ein eigenes Startbild wird nie überschrieben."
+

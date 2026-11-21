@@ -30,6 +30,7 @@ cp /usr/share/echoos/tiles/_addon_icon.png \
 python3 /usr/local/lib/echoos/gen_bootscreen.py /usr/share/plymouth/themes/echo
 mkdir -p "$H/.kodi/media"
 cp /usr/share/plymouth/themes/echo/splash.jpg "$H/.kodi/media/splash.jpg"
+cp /usr/share/plymouth/themes/echo/splash.jpg "$H/.kodi/addons/plugin.program.echoos.streaming/fanart.jpg"
 plymouth-set-default-theme echo
 # Das initramfs (mit Bootscreen) erzeugt pi-gen im Export-Schritt neu
 # (export-image/05-finalise: update-initramfs -k all -c).

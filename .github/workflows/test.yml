@@ -25,6 +25,8 @@ jobs:
             stage-echoos/00-echoos/files/rootfs/usr/local/bin/echoos-browser
       - name: Funktionstests (Agent, Addon, Konfiguration, Kacheln)
         run: python3 tests/test_all.py
+      - name: Kodi-Addon als ZIP bauen (Android, Fire TV, Pi)
+        run: python3 tools/build_kodi_addon.py tests/out/addon-zip
       - name: Web-Oberfläche in Chrome aufnehmen
         run: tests/run_ui_demo.sh
       - name: Bootscreen-Simulation rendern
@@ -49,3 +51,18 @@ jobs:
         with:
           name: visueller-test-plymouth-kodi
           path: tests/out/ci
+
+  addon-test-echt:
+    # Echo-Streaming-Addon in echtem Kodi: Kacheln, Einstellungen, Neon-Startbild
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Skripte ausführbar machen
+        run: chmod +x tests/*.sh tools/*.py
+      - name: Addon-Test
+        run: bash tests/addon_visual_test.sh
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: addon-test-kodi
+          path: tests/out/addon/*.png
