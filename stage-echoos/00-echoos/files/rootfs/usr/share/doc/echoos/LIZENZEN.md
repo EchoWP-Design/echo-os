@@ -45,4 +45,4 @@ keine Logos dieser Dienste und keine Inhalte Dritter.
 ## Echo-OS-eigene Bestandteile
 
 Build-Skripte, Einrichtungsdienste, KI-Agent, Kodi-Addon „Streaming“ und Bootscreen:
-Quellcode unter https://github.com/EchoWP-Design/EchoOs
+Quellcode unter https://github.com/EchoWP-Design/echo-os

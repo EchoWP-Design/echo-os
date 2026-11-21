@@ -15,7 +15,7 @@
         <disclaimer lang="de_DE">Unabhängiges Projekt. Es enthält keine Inhalte der Dienste und keine Logos; für die Dienste ist ein eigenes Abo nötig.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <source>https://github.com/EchoWP-Design/EchoOs</source>
+        <source>https://github.com/EchoWP-Design/echo-os</source>
         <news>1.1.0: Unterstützung für Kodi auf Android (startet die echten Apps), Neon-Startbild, Einstellungen.</news>
         <assets>
             <icon>icon.png</icon>
