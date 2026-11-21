@@ -138,8 +138,13 @@ def main():
     open(syslog, "a").close()
     before = open(syslog).read()
     kodi_run("?launch=netflix")
-    time.sleep(0.5)
-    new = open(syslog).read()[len(before):]
+    # systemctl wird im Hintergrund gestartet: warten, bis der Aufruf protokolliert ist
+    new = ""
+    for _ in range(100):
+        new = open(syslog).read()[len(before):]
+        if "echoos-browser@netflix" in new:
+            break
+        time.sleep(0.1)
     check("Klick auf Netflix startet echoos-browser@netflix", "start --no-block echoos-browser@netflix.service" in new, new)
     kodi_run("?launch=evil;rm")
     aenv["ECHOOS_TEST_NO_WIDEVINE"] = "1"
@@ -339,7 +344,14 @@ def main():
 
     # Laufwerk anstecken
     open(mounts, "a").write(f"/dev/sda1 {drive} exfat rw 0 0\n")
-    time.sleep(12)
+    # Der Agent prüft alle 10 s; auf langsamen CI-Rechnern dauert die erste Runde länger
+    for _ in range(90):
+        done = [c for c in kodi_calls(kodi_log) if c["method"].endswith("Library.Scan")
+                and (c.get("params") or {}).get("directory")]
+        if len(done) >= 3:
+            break
+        time.sleep(0.5)
+    time.sleep(1)
     rows = sqlite3.connect(db).execute("SELECT strPath, strContent, strScraper FROM path").fetchall()
     content = {os.path.basename(r[0].rstrip('/')): r[1] for r in rows}
     check("Ordner 'Filme' als Filme erkannt (TMDb-Scraper)", content.get("Filme") == "movies", rows)
