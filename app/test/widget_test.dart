@@ -465,12 +465,14 @@ void main() {
       addTearDown(tester.view.reset);
       final settings = EchoSettings();
       await tester.pumpWidget(MaterialApp(home: SettingsScreen(settings: settings, onSave: (_) async {})));
-      await tester.ensureVisible(find.byKey(const ValueKey('mode-phone')));
+      // Die Seite baut Einträge erst beim Hineinscrollen: die Seitenliste scrollen (nicht die Textfelder)
+      final page = find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first;
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('mode-phone')), 200, scrollable: page);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('mode-phone')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('version')), findsOneWidget);
-      await tester.ensureVisible(find.byKey(const ValueKey('save')));
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('save')), -200, scrollable: page);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('save')));
       await tester.pumpAndSettle();
