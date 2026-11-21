@@ -137,15 +137,37 @@ def patch_activity():
 
 
 def patch_images():
+    """App-Symbol nach EchoWP-Corporate-Design (branding/, Variante B Fernbedienung)."""
     res = os.path.join(MAIN, "res")
-    icon = Image.open(os.path.join(APP, "tool/out/icon.png")).convert("RGB")
+    brand = os.path.join(APP, "branding")
+    rund = Image.open(os.path.join(brand, "echo-app_symbol_rund_1024.png")).convert("RGBA")
     for folder, size in {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}.items():
         d = os.path.join(res, f"mipmap-{folder}")
         os.makedirs(d, exist_ok=True)
-        icon.resize((size, size), Image.LANCZOS).save(os.path.join(d, "ic_launcher.png"))
+        rund.resize((size, size), Image.LANCZOS).save(os.path.join(d, "ic_launcher.png"))
+    # Adaptive Icon (Android 8+): Vordergrund, schwarzer Hintergrund, Monochrom (Android 13+)
+    nodpi = os.path.join(res, "drawable-nodpi")
+    os.makedirs(nodpi, exist_ok=True)
+    for src, dst in (("echo-app_android-vordergrund_1024.png", "ic_launcher_foreground.png"),
+                     ("echo-app_android-monochrom_1024.png", "ic_launcher_monochrome.png")):
+        Image.open(os.path.join(brand, src)).convert("RGBA").resize((432, 432), Image.LANCZOS).save(os.path.join(nodpi, dst))
+    values = os.path.join(res, "values")
+    os.makedirs(values, exist_ok=True)
+    open(os.path.join(values, "ic_launcher_background.xml"), "w", encoding="utf-8").write(
+        '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n'
+        '    <color name="ic_launcher_background">#0A0A0A</color>\n</resources>\n')
+    anydpi = os.path.join(res, "mipmap-anydpi-v26")
+    os.makedirs(anydpi, exist_ok=True)
+    open(os.path.join(anydpi, "ic_launcher.xml"), "w", encoding="utf-8").write(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
+        '    <background android:drawable="@color/ic_launcher_background"/>\n'
+        '    <foreground android:drawable="@drawable/ic_launcher_foreground"/>\n'
+        '    <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>\n'
+        '</adaptive-icon>\n')
     d = os.path.join(res, "drawable")
     os.makedirs(d, exist_ok=True)
-    shutil.copy(os.path.join(APP, "tool/out/banner.png"), os.path.join(d, "banner.png"))
+    shutil.copy(os.path.join(brand, "echo-app_tv-banner_320x180.png"), os.path.join(d, "banner.png"))
 
 
 SIGNING = """
