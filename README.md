@@ -1,3 +1,5 @@
+<p align="center"><img src="branding/echowp-banner.png" alt="EchoWP" width="433"></p>
+
 # Echo-OS
 
 Ein Media-Center-Betriebssystem für den **Raspberry Pi 4 und 5** – mit Neon-Bootscreen im 80er-Stil, Kodi als Oberfläche, Streaming-Apps als Kacheln und einem KI-Agenten, der das System steuert und überwacht. Das Image wird mit **balenaEtcher** auf eine SD-Karte oder SSD geflasht.
